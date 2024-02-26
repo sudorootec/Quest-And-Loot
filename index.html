@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Quest And Loot</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+
+    <script src='node_modules/jquery/dist/jquery.js'></script>
+    <script src="node_modules/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src='node_modules/bootstrap/dist/js/bootstrap.bundle.min.js'></script>
+
+    <link rel='stylesheet' type='text/css' media='screen' href='node_modules/bootstrap/dist/css/bootstrap.min.css'>
+    <link rel="stylesheet" href="node_modules/bootstrap-icons/font/bootstrap-icons.css">
+    <link href="node_modules/datatables/media/css/jquery.dataTables.min.css" rel="stylesheet">
+</head>
+
+    <!-- MODAL GUILD DETAILS -->
+    <div class="modal fade modal-xl" id="modal_guild_details" tabindex="-1" role="dialog" aria-labelledby="modal_guild_details_label" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modal_guild_details_label">Guild Details</h5>
+                    <button type="button" class="close ms-auto btn btn-sm btn-outline-danger" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="ps-3 pe-3">
+
+                        <div class="row mb-3">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label">Name</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="guild_details_modal_guild_name" readonly disabled>
+                                    <button class="btn btn-outline-secondary" type="button" onclick="renameGuild()">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label">Level</label>
+                                <input type="text" class="form-control" id="guild_details_modal_guild_level" readonly disabled>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- MODAL GUILD DETAILS END -->
+
+    <!-- MODAL ADVENTURERS -->
+    <div class="modal fade modal-xl" id="modal_adventurers" tabindex="-1" role="dialog" aria-labelledby="modal_adventurers_label" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modal_adventurers_label">Adventurers</h5>
+                    <button type="button" class="close ms-auto btn btn-sm btn-outline-danger" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="ps-3 pe-3">
+
+                        <div class="row mb-3">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label">Total Amount:&nbsp</label><label class="form-label" id="modal_adventurers_total_amount"></label>
+                            </div>
+                        </div>
+
+                        <table class="display border mr-auto mb-5" id="modal_adventurers_table" style="width: 100%;"></table>
+
+                        <div style="display: flex; justify-content: center; align-items: center;">
+                            <button class="btn btn-outline-secondary" style="width: 20rem;" data-bs-toggle="modal" data-bs-target="#modal_recruitment" onclick="updateRecruitmentModal()">Recruit more adventurers</button>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- MODAL ADVENTURERS END -->
+
+    <!-- MODAL RECRUITMENT -->
+    <div class="modal fade modal-xl" id="modal_recruitment" tabindex="-1" role="dialog" aria-labelledby="modal_recruitment_label" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modal_recruitment_label">Recruit adventurers</h5>
+                    <button type="button" class="close ms-auto btn btn-sm btn-outline-danger" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="ps-3 pe-3">
+
+                        <table class="display border mr-auto" id="modal_recruitment_table" style="width: 100%;"></table>
+
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- MODAL RECRUITMENT END -->
+
+    <!-- HEADER -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+
+        <span class="navbar-brand ms-3" id="header_guild_name">Adventurer's Guild</span>
+        <button type="button" class="btn btn-sm btn-light" onclick="renameGuild()">
+            <i class="bi bi-pencil"></i>
+        </button>
+
+        <div class="collapse navbar-collapse" id="nav_bar_left">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active ms-3">
+                    <span class="nav-link disabled" id="header_guild_level">Level: 1</span>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="collapse navbar-collapse justify-content-end" id="nav_bar_lright">
+            <ul class="navbar-nav mr-auto">
+                <!-- <li class="nav-item active">
+                    <a class="nav-link" href="#">Home</a>
+                </li> -->
+            </ul>
+        </div>
+
+    </nav>
+    <!-- HEADER END -->
+
+    <!-- MAIN MENU -->
+    <div style="display: flex; justify-content: center; align-items: center; height: 85vh;">
+        <div class="card" style="width: 25rem;">
+            <div class="card-body">
+
+                <div class="ps-3 pe-3">
+                    <div class="row text-center mb-2">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modal_guild_details">
+                            Guild Details
+                        </button>
+                    </div>
+                    <div class="row text-center mb-2">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modal_adventurers" onclick="updateAdventurersModal()">
+                            Adventurers
+                        </button>
+                    </div>
+                    <div class="row text-center mb-2">
+                        <button type="button" class="btn btn-outline-secondary">
+                            Quests
+                        </button>
+                    </div>
+                    <div class="row text-center mb-2">
+                        <button type="button" class="btn btn-outline-secondary">
+                            Inventory
+                        </button>
+                    </div>
+                    <div class="row text-center mb-2">
+                        <button type="button" class="btn btn-outline-secondary">
+                            Store
+                        </button>
+                    </div>
+                    <div class="row text-center">
+                        <button type="button" class="btn btn-outline-secondary">
+                            Blacksmith
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <!-- MAIN MENU END-->
+
+</body>
+<script>
+    let modal_adventurers_table = [];
+    let modal_recruitment_table = [];
+
+    // All possible states of an adventurer and what they mean
+    let adventurer_states = {
+        1: 'available',
+        2: 'on quest'
+    };
+
+    // General info about the guild
+    let guild = {
+        name: "Adventurer's Guild",
+        level : 1
+    };
+
+    // Adventurers awaiting to be recruited into the guild
+    let adventurers_aspiring = [
+        {name: 'Robb Stark',        level: 1, state: 1},
+        {name: 'Loras Tyrell',      level: 1, state: 1},
+        {name: 'Rhaegar Targaryen', level: 1, state: 1},
+        {name: 'Danerys Targaryen', level: 1, state: 1},
+        {name: 'Stannis Baratheon', level: 1, state: 1},
+    ];
+
+    // Adventurers recruited by the guild
+    let adventurers_recruited = [
+        {name: 'Jon Snow',          level: 1, state: 1},
+        {name: 'Jaime Lannister',   level: 1, state: 1},
+        {name: 'Oberyn Martell',    level: 1, state: 1},
+        {name: 'Gregor Clegane',    level: 1, state: 1},
+        {name: 'Arthur Dayne',      level: 1, state: 1},
+    ];
+
+    $(document).ready(function(){
+        alterGuildName(guild.name);
+        alterGuildLevel(guild.level);
+    });
+
+    // Opens a prompt for the player to rename their guild
+    function renameGuild(){
+        let new_name = prompt("What is the name of your guild?",(guild.name || "Adventurer's Guild"));
+
+        if(new_name == '' || new_name === null){
+            return;
+        }
+
+        if(new_name.length > 40){
+            alert("Max character number exceeded (40)");
+            return;
+        }
+
+        alterGuildName(new_name);
+    }
+
+    // Alters guild name on the guild object and on every element that displays it
+    function alterGuildName(new_name){
+        guild.name = new_name;
+        $('#header_guild_name').html(guild.name);
+        $('#guild_details_modal_guild_name').val(guild.name);
+    }
+
+    // Increments guild level
+    function levelUp(){
+        alterGuildLevel(guild.level + 1);
+    }
+
+    // Alters guild level on the guild object and on every element that displays it
+    function alterGuildLevel(new_level){
+        guild.level = new_level;
+        $('#header_guild_level').html('Level: ' + guild.level);
+        $('#guild_details_modal_guild_level').val(guild.level);
+    }
+
+    // Prepares elements within adventurers modal when it is opened
+    function updateAdventurersModal(){
+        $('#modal_adventurers_total_amount').html(adventurers_recruited.length + '/' + getMaxAdventurers());
+
+        if ($.fn.DataTable.isDataTable('#modal_adventurers_table' )) {
+            modal_adventurers_table.clear();
+            modal_adventurers_table.rows.add(adventurers_recruited).draw();
+        } else {
+            modal_adventurers_table = $('#modal_adventurers_table').DataTable({
+                columns: [
+                    {
+                        data: 'name',
+                        title: 'Name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'level',
+                        title: 'Level',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'state',
+                        title: 'State',
+                        className: 'text-center',
+                        render: function(data, type, row){
+                            return adventurer_states[data];
+                        }
+                    },
+                    {
+                        title: 'Options',
+                        className: 'text-center',
+                        orderable: false,
+                        render: function(data, type, row){
+                            // todo: Buttons for this table
+                            return '';
+                        }
+                    }
+                ],
+                data: adventurers_recruited,
+                language: {
+                    emptyTable: 'No adventurers in your guild right now.'
+                },
+                paging: false,
+                searching: false,
+                info:     false,
+                order: [
+                    [0, "asc"]
+                ],
+                destroy: true
+            });
+        }
+    }
+
+    // Prepares elements within recruitment modal when it is opened
+    function updateRecruitmentModal(){
+        if ($.fn.DataTable.isDataTable('#modal_recruitment_table' )) {
+            modal_recruitment_table.clear();
+            modal_recruitment_table.rows.add(adventurers_aspiring).draw();
+        } else {
+            modal_recruitment_table = $('#modal_recruitment_table').DataTable({
+                columns: [
+                    {
+                        data: 'name',
+                        title: 'Name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'level',
+                        title: 'Level',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'state',
+                        title: 'State',
+                        className: 'text-center',
+                        render: function(data, type, row){
+                            return adventurer_states[data];
+                        }
+                    },
+                    {
+                        title: 'Options',
+                        className: 'text-center',
+                        orderable: false,
+                        render: function(data, type, row){
+                            let button = [];
+
+                            button.push({
+                                class: 'btn btn-sm btn-success',
+                                text: 'Recruit',
+                                icon: 'bi bi-check',
+                                onclick: `recruitAdventurer(this)`
+                            });
+
+                            return generateButtons(button);
+                        }
+                    }
+                ],
+                data: adventurers_aspiring,
+                language: {
+                    emptyTable: 'No adventurers awaiting recruitment right now.'
+                },
+                paging: false,
+                searching: false,
+                info:     false,
+                order: [
+                    [0, "asc"]
+                ],
+                destroy: true
+            });
+        }
+    }
+
+    // Returns maximum amount of recruited adventurers based on certain criteria
+    function getMaxAdventurers(){
+        // let max_adventurers = guild.level * 3;
+
+        // return max_adventurers;
+
+        return 100;
+    }
+
+    // Returns one or more HTML button elements based on the provided parameters (class, text, icon, onclick)
+    function generateButtons(buttons_params){
+        let buttons_to_generate = [];
+
+        $.each(buttons_params, function(key, button_params){
+            let button_to_generate = '<button class="'+button_params.class+'"';
+
+            if(button_params.onclick){
+                button_to_generate += ' onclick="'+button_params.onclick+'"';
+            }
+
+            button_to_generate += '>';
+
+            if(button_params.icon){
+                button_to_generate += '<i class="'+button_params.icon+'"></i>';
+            }
+
+            button_to_generate += button_params.text+'</button>';
+
+            buttons_to_generate.push(button_to_generate);
+        });
+
+        return buttons_to_generate.join(' ');
+    }
+
+    // Recruit an adventurer from the recruitment table into the guild
+    function recruitAdventurer(button){
+        if(adventurers_aspiring.length >= getMaxAdventurers()){
+            alert('You cannot recruit any more adventurers right now.');
+        } else {
+            let index = modal_recruitment_table.row($(button).closest('tr')).index();
+
+            adventurers_recruited.push(adventurers_aspiring[index]);
+            adventurers_aspiring.splice(index, 1);
+
+            updateRecruitmentModal();
+        }
+    }
+</script>
+</html>

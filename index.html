@@ -10,6 +10,10 @@
     <script src="node_modules/datatables/media/js/jquery.dataTables.min.js"></script>
     <script src='node_modules/bootstrap/dist/js/bootstrap.bundle.min.js'></script>
 
+    <script src='scripts/timer.js'></script>
+    <script src='scripts/display.js'></script>
+    <script src='scripts/templates.js'></script>
+
     <link rel='stylesheet' type='text/css' media='screen' href='node_modules/bootstrap/dist/css/bootstrap.min.css'>
     <link rel="stylesheet" href="node_modules/bootstrap-icons/font/bootstrap-icons.css">
     <link href="node_modules/datatables/media/css/jquery.dataTables.min.css" rel="stylesheet">
@@ -34,7 +38,7 @@
                                 <label class="form-label">Name</label>
                                 <div class="input-group">
                                     <input type="text" class="form-control" id="guild_details_modal_guild_name" readonly disabled>
-                                    <button class="btn btn-outline-secondary" type="button" onclick="renameGuild()">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="openPromptRenameGuild()">
                                         <i class="bi bi-pencil"></i>
                                     </button>
                                 </div>
@@ -48,7 +52,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary modal-close-button" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -83,7 +87,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary modal-close-button" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -103,12 +107,18 @@
                 <div class="modal-body">
                     <div class="ps-3 pe-3">
 
+                        <div class="row mb-3">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label">Next batch in:&nbsp</label><label class="form-label" id="modal_recruitment_next_batch_timer"></label>
+                            </div>
+                        </div>
+
                         <table class="display border mr-auto" id="modal_recruitment_table" style="width: 100%;"></table>
 
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary modal-close-button" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -119,7 +129,7 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
 
         <span class="navbar-brand ms-3" id="header_guild_name">Adventurer's Guild</span>
-        <button type="button" class="btn btn-sm btn-light" onclick="renameGuild()">
+        <button type="button" class="btn btn-sm btn-light" onclick="openPromptRenameGuild()">
             <i class="bi bi-pencil"></i>
         </button>
 
@@ -190,11 +200,13 @@
     let modal_adventurers_table = [];
     let modal_recruitment_table = [];
 
-    // All possible states of an adventurer and what they mean
-    let adventurer_states = {
-        1: 'available',
-        2: 'on quest'
-    };
+    // Stores modals that were previously opened but closed because another one was opened
+    // so that they can be reopened once the current one is closed
+    let open_modals = [];
+
+    // Stores the datetime of the arrival of the next batch of aspiring adventurers
+    let time_of_next_aspiring_batch_arrival = '';
+    let number_of_aspirants_per_batch = 5;
 
     // General info about the guild
     let guild = {
@@ -204,172 +216,44 @@
 
     // Adventurers awaiting to be recruited into the guild
     let adventurers_aspiring = [
-        {name: 'Robb Stark',        level: 1, state: 1},
-        {name: 'Loras Tyrell',      level: 1, state: 1},
-        {name: 'Rhaegar Targaryen', level: 1, state: 1},
-        {name: 'Danerys Targaryen', level: 1, state: 1},
-        {name: 'Stannis Baratheon', level: 1, state: 1},
+        {name: 'Robb Stark',        level: 1, id_state: 1, id_gender: 1},
+        {name: 'Loras Tyrell',      level: 1, id_state: 1, id_gender: 1},
+        {name: 'Rhaegar Targaryen', level: 1, id_state: 1, id_gender: 1},
+        {name: 'Danerys Targaryen', level: 1, id_state: 1, id_gender: 0},
+        {name: 'Stannis Baratheon', level: 1, id_state: 1, id_gender: 1},
     ];
 
     // Adventurers recruited by the guild
     let adventurers_recruited = [
-        {name: 'Jon Snow',          level: 1, state: 1},
-        {name: 'Jaime Lannister',   level: 1, state: 1},
-        {name: 'Oberyn Martell',    level: 1, state: 1},
-        {name: 'Gregor Clegane',    level: 1, state: 1},
-        {name: 'Arthur Dayne',      level: 1, state: 1},
+        {name: 'Jon Snow',          level: 1, id_state: 1, id_gender: 1},
+        {name: 'Jaime Lannister',   level: 1, id_state: 1, id_gender: 1},
+        {name: 'Oberyn Martell',    level: 1, id_state: 1, id_gender: 1},
+        {name: 'Gregor Clegane',    level: 1, id_state: 1, id_gender: 1},
+        {name: 'Arthur Dayne',      level: 1, id_state: 1, id_gender: 1},
     ];
 
     $(document).ready(function(){
         alterGuildName(guild.name);
         alterGuildLevel(guild.level);
+
+        time_of_next_aspiring_batch_arrival = getDateTimePlusXHours(new Date(), 1);
+
+        // Stores the opened modal into an array when it is opened
+        $('.modal').on('shown.bs.modal', function(){
+            open_modals.push($(this).attr('id'));
+        });
+
+        // Opens previous modal when one is closed. Removes closed one from modals array
+        $('.modal-close-button').on('click', function(){
+            open_modals.pop();
+            $('#'+open_modals[open_modals.length-1]).modal('toggle');
+            open_modals.pop();
+        });
     });
-
-    // Opens a prompt for the player to rename their guild
-    function renameGuild(){
-        let new_name = prompt("What is the name of your guild?",(guild.name || "Adventurer's Guild"));
-
-        if(new_name == '' || new_name === null){
-            return;
-        }
-
-        if(new_name.length > 40){
-            alert("Max character number exceeded (40)");
-            return;
-        }
-
-        alterGuildName(new_name);
-    }
-
-    // Alters guild name on the guild object and on every element that displays it
-    function alterGuildName(new_name){
-        guild.name = new_name;
-        $('#header_guild_name').html(guild.name);
-        $('#guild_details_modal_guild_name').val(guild.name);
-    }
 
     // Increments guild level
     function levelUp(){
         alterGuildLevel(guild.level + 1);
-    }
-
-    // Alters guild level on the guild object and on every element that displays it
-    function alterGuildLevel(new_level){
-        guild.level = new_level;
-        $('#header_guild_level').html('Level: ' + guild.level);
-        $('#guild_details_modal_guild_level').val(guild.level);
-    }
-
-    // Prepares elements within adventurers modal when it is opened
-    function updateAdventurersModal(){
-        $('#modal_adventurers_total_amount').html(adventurers_recruited.length + '/' + getMaxAdventurers());
-
-        if ($.fn.DataTable.isDataTable('#modal_adventurers_table' )) {
-            modal_adventurers_table.clear();
-            modal_adventurers_table.rows.add(adventurers_recruited).draw();
-        } else {
-            modal_adventurers_table = $('#modal_adventurers_table').DataTable({
-                columns: [
-                    {
-                        data: 'name',
-                        title: 'Name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'level',
-                        title: 'Level',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'state',
-                        title: 'State',
-                        className: 'text-center',
-                        render: function(data, type, row){
-                            return adventurer_states[data];
-                        }
-                    },
-                    {
-                        title: 'Options',
-                        className: 'text-center',
-                        orderable: false,
-                        render: function(data, type, row){
-                            // todo: Buttons for this table
-                            return '';
-                        }
-                    }
-                ],
-                data: adventurers_recruited,
-                language: {
-                    emptyTable: 'No adventurers in your guild right now.'
-                },
-                paging: false,
-                searching: false,
-                info:     false,
-                order: [
-                    [0, "asc"]
-                ],
-                destroy: true
-            });
-        }
-    }
-
-    // Prepares elements within recruitment modal when it is opened
-    function updateRecruitmentModal(){
-        if ($.fn.DataTable.isDataTable('#modal_recruitment_table' )) {
-            modal_recruitment_table.clear();
-            modal_recruitment_table.rows.add(adventurers_aspiring).draw();
-        } else {
-            modal_recruitment_table = $('#modal_recruitment_table').DataTable({
-                columns: [
-                    {
-                        data: 'name',
-                        title: 'Name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'level',
-                        title: 'Level',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'state',
-                        title: 'State',
-                        className: 'text-center',
-                        render: function(data, type, row){
-                            return adventurer_states[data];
-                        }
-                    },
-                    {
-                        title: 'Options',
-                        className: 'text-center',
-                        orderable: false,
-                        render: function(data, type, row){
-                            let button = [];
-
-                            button.push({
-                                class: 'btn btn-sm btn-success',
-                                text: 'Recruit',
-                                icon: 'bi bi-check',
-                                onclick: `recruitAdventurer(this)`
-                            });
-
-                            return generateButtons(button);
-                        }
-                    }
-                ],
-                data: adventurers_aspiring,
-                language: {
-                    emptyTable: 'No adventurers awaiting recruitment right now.'
-                },
-                paging: false,
-                searching: false,
-                info:     false,
-                order: [
-                    [0, "asc"]
-                ],
-                destroy: true
-            });
-        }
     }
 
     // Returns maximum amount of recruited adventurers based on certain criteria
@@ -379,31 +263,6 @@
         // return max_adventurers;
 
         return 100;
-    }
-
-    // Returns one or more HTML button elements based on the provided parameters (class, text, icon, onclick)
-    function generateButtons(buttons_params){
-        let buttons_to_generate = [];
-
-        $.each(buttons_params, function(key, button_params){
-            let button_to_generate = '<button class="'+button_params.class+'"';
-
-            if(button_params.onclick){
-                button_to_generate += ' onclick="'+button_params.onclick+'"';
-            }
-
-            button_to_generate += '>';
-
-            if(button_params.icon){
-                button_to_generate += '<i class="'+button_params.icon+'"></i>';
-            }
-
-            button_to_generate += button_params.text+'</button>';
-
-            buttons_to_generate.push(button_to_generate);
-        });
-
-        return buttons_to_generate.join(' ');
     }
 
     // Recruit an adventurer from the recruitment table into the guild
@@ -417,7 +276,27 @@
             adventurers_aspiring.splice(index, 1);
 
             updateRecruitmentModal();
+            updateAdventurersModal();
         }
+    }
+
+    // Generates a new batch of randomly generated aspirants to replace the previous one
+    function generateNewBatchOfAspirants(){
+        adventurers_aspiring = [];
+
+        for(let i = 0; i < number_of_aspirants_per_batch; i++){
+            let generated_aspirant = [];
+
+            generated_aspirant['id_gender'] = Math.round(Math.random());
+            generated_aspirant['name'] = generateHumanName(generated_aspirant['id_gender']);
+            generated_aspirant['id_state'] = 1;
+            generated_aspirant['level'] = 1;
+
+            adventurers_aspiring.push(generated_aspirant);
+        }
+
+        updateRecruitmentModal();
+        time_of_next_aspiring_batch_arrival = getDateTimePlusXHours(new Date(), 1);
     }
 </script>
 </html>

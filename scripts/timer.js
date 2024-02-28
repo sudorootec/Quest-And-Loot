@@ -52,5 +52,9 @@ function getCountdown(fromDateTime, toDateTime) {
         countdownString += `${seconds} second${seconds > 1 ? "s" : ""}`;
     }
 
+    if (countdownString[countdownString.length - 1] == " ") {
+        countdownString = countdownString.slice(0, -2);
+    }
+
     return countdownString;
 }

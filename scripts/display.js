@@ -3,8 +3,24 @@
 
 // Opens a prompt for the player to rename their guild
 function openPromptRenameGuild(){
-    let new_name = prompt("What is the name of your guild?",(guild.name || "Adventurer's Guild"));
+    Swal.fire({
+        title: 'What is the name of your guild?',
+        input: 'text',
+        inputPlaceholder: guild.name,
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Done'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const new_name = result.value;
+            alterGuildName(new_name);
+        }
+    });
+}
 
+// Alters guild name on the guild object and updates every element that displays it
+function alterGuildName(new_name){
     if(new_name == '' || new_name === null){
         return;
     }
@@ -14,11 +30,6 @@ function openPromptRenameGuild(){
         return;
     }
 
-    alterGuildName(new_name);
-}
-
-// Alters guild name on the guild object and updates every element that displays it
-function alterGuildName(new_name){
     guild.name = new_name;
     $('#header_guild_name').html(guild.name);
     $('#guild_details_modal_guild_name').val(guild.name);
@@ -64,8 +75,25 @@ function updateAdventurersModal(){
                     className: 'text-center',
                     orderable: false,
                     render: function(data, type, row){
-                        // todo: Buttons for this table
-                        return '';
+                        buttons = [];
+
+                        buttons.push({
+                            class: 'btn btn-sm btn-primary',
+                            description: 'Details',
+                            icon: 'bi bi-eye-fill',
+                            onclick: `index = modal_adventurers_table.row($(this).closest('tr')).index(); openAdventurerDetailsModal(index);`
+                        });
+
+                        if(row.id_state == 1){
+                            buttons.push({
+                                class: 'btn btn-sm btn-danger',
+                                description: 'Dismiss',
+                                icon: 'bi bi-x-lg',
+                                onclick: `confirmDismissAdventurer(this)`
+                            });
+                        }
+
+                        return generateButtons(buttons);
                     }
                 }
             ],
@@ -115,16 +143,16 @@ function updateRecruitmentModal(){
                     className: 'text-center',
                     orderable: false,
                     render: function(data, type, row){
-                        let button = [];
+                        let buttons = [];
 
-                        button.push({
+                        buttons.push({
                             class: 'btn btn-sm btn-success',
-                            text: 'Recruit',
-                            icon: 'bi bi-check',
+                            description: 'Recruit',
+                            icon: 'bi bi-check-lg',
                             onclick: `recruitAdventurer(this)`
                         });
 
-                        return generateButtons(button);
+                        return generateButtons(buttons);
                     }
                 }
             ],
@@ -143,7 +171,12 @@ function updateRecruitmentModal(){
     }
 }
 
-// Returns one or more HTML button elements based on the provided parameters (class, text, icon, onclick)
+// Opens the adventurer details modal
+function openAdventurerDetailsModal(adventurer_index){
+    console.log(adventurers_recruited[adventurer_index]);
+}
+
+// Returns one or more HTML button elements based on the provided parameters (class, text, description, icon, onclick)
 function generateButtons(buttons_params){
     let buttons_to_generate = [];
 
@@ -154,13 +187,21 @@ function generateButtons(buttons_params){
             button_to_generate += ' onclick="'+button_params.onclick+'"';
         }
 
+        if(button_params.description){
+            button_to_generate += ' title="'+button_params.description+'"';
+        }
+
         button_to_generate += '>';
 
         if(button_params.icon){
             button_to_generate += '<i class="'+button_params.icon+'"></i>';
         }
 
-        button_to_generate += button_params.text+'</button>';
+        if(buttons_params.text){
+            button_to_generate += button_params.text;
+        }
+
+        button_to_generate += '</button>';
 
         buttons_to_generate.push(button_to_generate);
     });

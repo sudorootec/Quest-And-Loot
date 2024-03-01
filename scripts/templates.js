@@ -3,11 +3,12 @@
 
 // All possible states of an adventurer and what they mean
 const adventurer_states = {
-    1: 'available',
-    2: 'on quest'
+    0: 'on quest',
+    1: 'available'
 };
 
-// Listen... I just don't have the time to add more complexity to this mechanic
+// I know what you're thinking, but listen... 
+// I just don't have the time to add more complexity to this mechanic
 // Maybe in a future version.
 const gender = {
     0: 'female',
@@ -16,6 +17,7 @@ const gender = {
 
 const male_first_names = [
     'Aelfred',
+    'Angus',
     'Alaric',
     'Baldwin',
     'Balon',
@@ -138,10 +140,12 @@ const female_first_names = [
     'Alice',
     'Anya',
     'Beatrix',
+    'Brienne',
     'Catrin',
     'Catherine',
     'Catarina',
     'Cecily',
+    'Cersei',
     'Clarissa',
     'Constance',
     'Eleanor',
@@ -165,7 +169,10 @@ const female_first_names = [
     'Mavis',
     'Megan',
     'Miquella',
+    'Margareth',
+    'Margaery',
     'Malenia',
+    'Myrcella',
     'Nicolette',
     'Oriana',
     'Philippa',

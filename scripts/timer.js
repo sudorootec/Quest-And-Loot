@@ -1,15 +1,27 @@
 // Scripts related to time passage in any way
 // -------------------------------------------
 
-const intervalId = setInterval(aSecondHasPassed, 1000);
+function syncClocks() {
+    // Calculate the time remaining until the next second
+    const now = new Date();
+    const msUntilNextSecond = 1000 - (now.getMilliseconds() % 1000);
+
+    // Set a timeout to call syncClocks() again after the calculated time
+    setTimeout(syncClocks, msUntilNextSecond);
+    
+    // Update your clock objects or perform any other actions here
+    aSecondHasPassed(new Date());
+}
+// Start the synchronization
+setTimeout(syncClocks, 100);
 
 // Updates some things that depend on time every 1 second
-function aSecondHasPassed(){
-    if(time_of_next_aspiring_batch_arrival <= new Date()){
+function aSecondHasPassed(current_date){
+    if(time_of_next_aspiring_batch_arrival <= current_date){
         generateNewBatchOfAspirants();
     }
 
-    $('#modal_recruitment_next_batch_timer').html(getCountdown(new Date(), time_of_next_aspiring_batch_arrival));
+    $('#modal_recruitment_next_batch_timer').html(getCountdown(current_date, time_of_next_aspiring_batch_arrival));
 }
 
 // Returns a date time plus an X amount of hours
